@@ -83,43 +83,45 @@ var chooseByID = function(){
 
 		idNum = parseInt(answer.idNum);
 		stockNum = parseInt(answer.stockNum);
-		console.log("This is idNum " + idNum);
-		console.log("This is stockNum " + stockNum);
+		// console.log("This is idNum " + idNum);
+		// console.log("This is stockNum " + stockNum);
 
-		var query = "SELECT * FROM products WHERE item_id = 3";
+		var query = "SELECT * FROM products WHERE item_id = ?";
 
-		connection.query(query, function(err, res) {
+		connection.query(query, idNum, function(err, res) {
 			// console.log("The type of item id is:" + typeof res[0].item_id);
 			// console.log("The type of idNum is:" + typeof idNum);
 			if (err){
 				throw err;
 			} else {
-				console.log(res);
+				// console.log(res);
+				for (i=0; i<res.length;i++){
+					// console.log("There are " + res[i].stock_quantity + " items in stock.");
+					// console.log(stockNum < res[i].stock_quantity);
+					if (stockNum > res[i].stock_quantity){
+						console.log("Insufficient Stock!");
+						chooseByID();
+					} else if (stockNum <= res[i].stock_quantity) {
+						console.log("Thank you for your purchase.");
+						// update the SQL database to reflect the remaining quantity.
+						// Once the update goes through, show the customer the total cost of their purchase.
+						var remainder = res[i].stock_quantity - stockNum;
+						updateStock(idNum,remainder);
+						chooseByID();
+					}
+				}
+				
+				
 			}
 			
 
-			// console.log("res.length = " + res.length);
-			// for(i=0;i<res.length;i++){
-
-			// 	if (idNum === res[i].item_id  && stockNum < res[i].stock_quantity){
-			// 		console.log("Comparing " + res[i].item_id  + " and " + idNum );
-			// 		console.log("You selected item number " + res[i].item_id + ". We have " + res[i].stock_quantity + " in stock.");
-			// 		// chooseByID();
-			// 		// Update the SQL database to reflect the remaining quantity.
-			// 		// Once the update goes through, show the customer the total cost of their purchase.
-					
-			// 		chooseByID();
-			// 		return;
-			// 	} else {					
-			// 		console.log("Insufficient Quantity!");
-			// 		console.log("Comparing " + idNum + " and " + res[i].item_id);
-			// 		console.log("You selected item number " + res[i].item_id + ". We have " + res[i].stock_quantity + " in stock.");
-			// 		chooseByID();
-			// 		return;									
-			// 	}
-			// }			
-	    	// chooseByID();
 	    });
 	});
 };
 
+var updateStock = function(itemID,remainder){
+	// console.log("This is the updateStock function. This is what is passed in " + itemID + "," + remainder);
+	
+	connection.query("UPDATE products SET ? WHERE ?", [{ stock_quantity: remainder}, {item_id: itemID}], function(err, res) {});
+		
+}
