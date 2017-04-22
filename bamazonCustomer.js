@@ -18,7 +18,7 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
 	if (err) throw err;
 	console.log("connected as id " + connection.threadId);
-	displayItems();
+	fillTable();	
 });
 
 // Pull data from CSV file
@@ -43,44 +43,42 @@ var table = new Table({
     colWidths: [5, 30, 30, 30, 10]
 });
 
-table.push(
-    [1, "hat", "sports", 5.66, 5],
-    [2, "sandals", "men", 10.66, 25]
-);
- 
-// var fillTable = function(){
-// 	var query = "SELECT * FROM bamazon_db.products";
+// table.push(
+//     [1, "hat", "sports", 5.66, 5],
+//     [2, "sandals", "men", 10.66, 25]
+// );
 
-// 	connection.query(query, [answer.start, answer.end], function(err, res) {
-// 		console.log("This is res[0]:" + res[0]);
-// 		// displayItems();
-//     });
-// };
+var fillTable = function(){
+	var query = "SELECT * FROM bamazon_db.products";
+
+	connection.query(query, function(err, res) {
+		// console.log("The type of item id is:" + typeof res[0].item_id);
+		// console.log("The type of idNum is:" + typeof idNum);
+		for(i=0;i<res.length;i++){
+			table.push([res[i].item_id,
+						res[i].product_name,
+						res[i].department_name,
+						res[i].price,
+						res[i].stock_quantity
+			]);
+			
+		}			
+    	displayItems();
+    });
+	
+}
+
 
 var displayItems = function(){
-	inquirer.prompt([{
-		name: "choice",
-		type: "confirm",
-		message: "Welcome to Bamazon! Would you like to see our inventory?"
-
-	}]).then(function(answer){
-		choice = answer.choice;
-		if (choice){
-			console.log(table.toString());
-			chooseByID();
-		} else {
-			console.log("Thanks for visiting Bamazon!");
-			console.log("----------------------------");
-			displayItems();
-		}
-	});
-	
+	console.log(table.toString());
+	chooseByID();	
 };
+
 
 var chooseByID = function(){
 	inquirer.prompt([{
 	name: "idNum",
-	message: "Please type in the item number of the product you would like to buy.",
+	message: "Please type in the item number of the product you would like",
 	validate: function(value) {
 		if (isNaN(value) === false) {
 			return true;
@@ -111,6 +109,13 @@ var chooseByID = function(){
 			for(i=0;i<res.length;i++){
 				if (res[i].item_id === idNum){
 				console.log("This is your item: " + res[i].item_id + res[i].product_name);
+				table.push([res[i].item_id,
+							res[i].product_name,
+							res[i].department_name,
+							res[i].price,
+							res[i].stock_quantity
+				]);
+				displayItems();
 				}
 			}			
 	    	// chooseByID();
